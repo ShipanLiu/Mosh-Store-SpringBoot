@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mosh-store
+  config:
+      import: "optional:classpath:.env"
+
+# the @ConfigurationProperties(prefix = "stripe") will find the header "stripe"
+stripe:
+  enabled: true
+  apiUrl: https://api.stripe.com
+  timeout: 1000
+  supportedCurrencies:
+    - USD
+    - EUR
+    - GBP
+
+  
