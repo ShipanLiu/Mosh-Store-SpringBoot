@@ -1,12 +1,17 @@
 package com.codewithmosh.store.controller;
 
-import com.codewithmosh.store.service.notification.NotificationManagerService;
+import com.codewithmosh.store.entity.User;
+import com.codewithmosh.store.service.notification.NotificationService;
 import com.codewithmosh.store.service.order.OrderService;
+import com.codewithmosh.store.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/")
@@ -16,14 +21,13 @@ public class HomeController {
     private String appName;
 
     private OrderService orderService;
-    private NotificationManagerService notificationManagerService;
+    private NotificationService notificationManagerService;
+    private UserService userService;
 
-    @Autowired
-    public HomeController(
-            OrderService orderService,
-            NotificationManagerService notificationManagerService) {
+    public HomeController(OrderService orderService, NotificationService notificationManagerService, UserService userService) {
         this.orderService = orderService;
         this.notificationManagerService = notificationManagerService;
+        this.userService = userService;
     }
 
     @GetMapping("/")
@@ -36,5 +40,24 @@ public class HomeController {
     public String sendNotification() {
         notificationManagerService.sendNotification("hallo world, this is a notification");
         return "index.html";
+    }
+
+    // for testing the register user + get notifications
+    @GetMapping("/register")
+    public ResponseEntity<String> registerUser() {
+        try {
+            userService.register(new User(1L, "shipanliu", "liushi2n", "19980223"));
+            return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error registering user: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("/user-info")
+    @ResponseBody
+    public User getUserInfo() {
+        // This method demonstrates the use of @ResponseBody
+        // The User object will be automatically converted to JSON
+        return new User(1L, "example_user", "user@example.com", "password123");
     }
 }

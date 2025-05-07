@@ -4,11 +4,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationManagerService {
-    private NotificationServiceAPI notificationService;
+public class NotificationService {
+
+    private NotificationServiceInterface notificationService;
 
 
-    public NotificationManagerService(@Qualifier("email") NotificationServiceAPI notificationService) {
+    public NotificationService(@Qualifier("email") NotificationServiceInterface notificationService) {
         this.notificationService = notificationService;
     }
 
@@ -19,22 +20,11 @@ public class NotificationManagerService {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-    public NotificationServiceAPI getNotificationService() {
+    public NotificationServiceInterface getNotificationService() {
         return notificationService;
     }
 
-    public void setNotificationService(NotificationServiceAPI notificationService) {
+    public void setNotificationService(NotificationServiceInterface notificationService) {
         this.notificationService = notificationService;
     }
 }

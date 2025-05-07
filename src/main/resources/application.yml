@@ -16,5 +16,6 @@ stripe:
     - USD
     - EUR
     - GBP
+payment-gateway: stripe
 
   

@@ -1,5 +1,5 @@
 package com.codewithmosh.store.service.notification;
 
-public interface NotificationServiceAPI {
+public interface NotificationServiceInterface {
     void send(String notification);
 }
