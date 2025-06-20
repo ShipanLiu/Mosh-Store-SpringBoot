@@ -1,10 +1,10 @@
-package com.codewithmosh.store.service.payment;
+package com.codewithmosh.store.service.payment.processors;
 
 import com.codewithmosh.store.config.StripeConfig;
 import org.springframework.stereotype.Service;
 
 @Service("stripe")
-public class StripePaymentService implements PaymentServiceAPI {
+public class StripePaymentService implements PaymentService {
 
     // We pack all the strip-info into a class StripeConfig
     private final StripeConfig stripeConfig;

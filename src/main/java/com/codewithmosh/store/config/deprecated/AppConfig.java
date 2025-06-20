@@ -1,14 +1,20 @@
 /*
+
+This is just for a show
+
+
 *
 * Demo：  if you don't use the annotations, create ean manually
 *
-* */
+* *//*
 
-package com.codewithmosh.store.config;
 
+package com.codewithmosh.store.config.deprecated;
+
+import com.codewithmosh.store.config.StripeConfig;
 import com.codewithmosh.store.service.order.OrderService;
-import com.codewithmosh.store.service.payment.PaypalPaymentService;
-import com.codewithmosh.store.service.payment.StripePaymentService;
+import com.codewithmosh.store.service.payment.processors.PayPalPaymentService;
+import com.codewithmosh.store.service.payment.processors.StripePaymentService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,9 +32,9 @@ public class AppConfig {
 
     // if you don't use the @Service, you can create the bean here, the retured value will be injected into the constructor of the OrderService.
     @Bean(name = "paypal")
-    public PaypalPaymentService paypalPaymentService() {
+    public PayPalPaymentService paypalPaymentService() {
         // if ... else ...
-        return new PaypalPaymentService();
+        return new PayPalPaymentService();
     }
 
     // if you don't use the @Service, you can create the bean here.
@@ -42,9 +48,10 @@ public class AppConfig {
     public OrderService orderService() {
 
         if(paymentGateway.equals("paypal")) {
-            return new OrderService(paypalPaymentService());
+            return new OrderService(new PayPalPaymentService());
         }
 
         return new OrderService(stripePaymentService());
     }
 }
+*/

@@ -6,8 +6,15 @@ spring:
     name: mosh-store
   config:
       import: "optional:classpath:.env"
+  datasource:
+    url: jdbc:mysql://localhost:3308/store
 
-# the @ConfigurationProperties(prefix = "stripe") will find the header "stripe"
+# Payment Configuration
+payment:
+  default-method: paypal  # Default payment method: paypal, stripe, creditCard
+  gateway: ${payment.default-method}  # For backward compatibility
+
+# Stripe Configuration
 stripe:
   enabled: true
   apiUrl: https://api.stripe.com
@@ -16,6 +23,16 @@ stripe:
     - USD
     - EUR
     - GBP
-payment-gateway: stripe
+
+# PayPal Configuration (example)
+paypal:
+  enabled: true
+  apiUrl: https://api.paypal.com
+  timeout: 2000
+
+# Credit Card Configuration (example)  
+creditCard:
+  enabled: true
+  timeout: 1500
 
   

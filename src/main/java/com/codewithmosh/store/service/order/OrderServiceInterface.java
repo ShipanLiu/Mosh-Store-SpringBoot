@@ -1,11 +1,11 @@
 package com.codewithmosh.store.service.order;
 
-import com.codewithmosh.store.service.payment.PaymentServiceAPI;
+import com.codewithmosh.store.service.payment.processors.PaymentService;
 
 public interface OrderServiceInterface {
     void placeOrder(double amount);
 
-    void setPaymentService(PaymentServiceAPI paymentService);
+    void setPaymentService(PaymentService paymentService);
 
-    PaymentServiceAPI getPaymentService();
+    PaymentService getPaymentService();
 }

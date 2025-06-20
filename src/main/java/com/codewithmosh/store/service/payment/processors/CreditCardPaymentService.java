@@ -1,10 +1,8 @@
-package com.codewithmosh.store.service.payment;
+package com.codewithmosh.store.service.payment.processors;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Service
-@Profile("credit-card")
+@Service("creditCard")
 public class CreditCardPaymentService implements PaymentService {
     @Override
     public void processPayment(double amount) {

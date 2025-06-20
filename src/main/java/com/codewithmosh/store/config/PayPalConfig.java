@@ -3,17 +3,16 @@ package com.codewithmosh.store.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * PayPal payment configuration properties
+ */
 @Configuration
-//Spring Boot looks for configuration properties that start with `stripe`
-@ConfigurationProperties(prefix = "stripe")
-public class StripeConfig {
-    private boolean enabled;
-    private String apiUrl;
-    private int timeout = 3000; // default value
-    private List<String> supportedCurrencies =  new ArrayList<>();
+@ConfigurationProperties(prefix = "paypal")
+public class PayPalConfig {
+    
+    private boolean enabled = true;
+    private String apiUrl = "https://api.paypal.com";
+    private int timeout = 2000;
 
     public boolean isEnabled() {
         return enabled;
@@ -38,12 +37,4 @@ public class StripeConfig {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
-
-    public List<String> getSupportedCurrencies() {
-        return supportedCurrencies;
-    }
-
-    public void setSupportedCurrencies(List<String> supportedCurrencies) {
-        this.supportedCurrencies = supportedCurrencies;
-    }
-}
+} 

@@ -1,6 +1,6 @@
 package com.codewithmosh.store.service.order;
 
-import com.codewithmosh.store.service.payment.PaymentServiceAPI;
+import com.codewithmosh.store.service.payment.processors.PaymentService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderService implements OrderServiceInterface {
 
-    private PaymentServiceAPI paymentService;
+    private PaymentService paymentService;
 
     public OrderService() {}
 
     // here you use @Autowired because you have 2 constructors
-    // if the interface PaymentService has 2 ikmplementations, you need to use @Qualifier (like to set a service to default)
+    // if the interface PaymentService has 2 implementations, you need to use @Qualifier (like to set a service to default)
     @Autowired
-    public OrderService(@Qualifier("stripe") PaymentServiceAPI paymentService) {
+    public OrderService(@Qualifier("stripe") PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
@@ -43,12 +43,12 @@ public class OrderService implements OrderServiceInterface {
     }
 
     @Override
-    public void setPaymentService(PaymentServiceAPI paymentService) {
+    public void setPaymentService(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 
     @Override
-    public PaymentServiceAPI getPaymentService() {
+    public PaymentService getPaymentService() {
         return paymentService;
     }
 }

@@ -1,24 +1,40 @@
 package com.codewithmosh.store.config;
 
-import com.codewithmosh.store.service.payment.CreditCardPaymentService;
-import com.codewithmosh.store.service.payment.PayPalPaymentService;
-import com.codewithmosh.store.service.payment.PaymentService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import com.codewithmosh.store.service.payment.processors.StripePaymentService;
+import com.codewithmosh.store.service.payment.processors.CreditCardPaymentService;
+import com.codewithmosh.store.service.payment.processors.PayPalPaymentService;
+import com.codewithmosh.store.service.payment.processors.PaymentService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Payment configuration that creates all payment service beans.
+ * This allows for dynamic switching between payment methods at runtime.
+ */
 @Configuration
 public class PaymentConfig {
 
-    @Bean
-    @ConditionalOnProperty(name = "payment.method", havingValue = "creditCard", matchIfMissing = true)
+    /**
+     * Credit Card payment service bean
+     */
+    @Bean("creditCard")
     public PaymentService creditCardPaymentService() {
         return new CreditCardPaymentService();
     }
 
-    @Bean
-    @ConditionalOnProperty(name = "payment.method", havingValue = "paypal")
+    /**
+     * PayPal payment service bean
+     */
+    @Bean("paypal")
     public PaymentService payPalPaymentService() {
         return new PayPalPaymentService();
+    }
+
+    /**
+     * Stripe payment service bean
+     */
+    @Bean("stripe")
+    public PaymentService stripePaymentService(StripeConfig stripeConfig) {
+        return new StripePaymentService(stripeConfig);
     }
 } 
