@@ -68,7 +68,13 @@ public class PaymentFacade {
             throw new IllegalArgumentException("Payment method cannot be null or empty");
         }
 
-        PaymentService paymentService = paymentServices.get(paymentMethod.toLowerCase());
+        // Handle both creditCard and credit-card for backward compatibility
+        String beanName = paymentMethod.toLowerCase();
+        if ("credit-card".equals(beanName)) {
+            beanName = "creditCard";
+        }
+        
+        PaymentService paymentService = paymentServices.get(beanName);
         
         if (paymentService == null) {
             throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod + 

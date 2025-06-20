@@ -7,46 +7,54 @@ spring:
   config:
       import: "optional:classpath:.env"
   datasource:
-    url: jdbc:mysql://localhost:3308/cdb_mosh_store
-    username:
-    password:
-    driver-class-name:
-
-
-
-
-
-
+    url: jdbc:mysql://localhost:3308/store
 
 # Payment Configuration
 payment:
-  default-method: paypal  # Easy to change!
+  default-method: paypal  # Default payment method: paypal, stripe, credit-card
+  gateway: ${payment.default-method}  # For backward compatibility
 
-# Comprehensive PayPal Configuration
-paypal:
-  enabled: true
-  environment: sandbox
-  clientId: ${PAYPAL_CLIENT_ID:demo_client_id}
-  clientSecret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
-  supportedCurrencies: [USD, EUR, GBP, CAD, AUD]
-  feePercentage: 2.9
-  fixedFee: 0.30
-
-# Comprehensive Credit Card Configuration
-creditCard:
-  enabled: true
-  processorName: "Secure Payment Processor"
-  acceptedCardTypes: [VISA, MASTERCARD, AMERICAN_EXPRESS, DISCOVER]
-  processingFeePercentage: 2.5
-  requireCvv: true
-  requireBillingAddress: false
-  maxRetryAttempts: 3
-
-# Enhanced Stripe Configuration
+# Stripe Configuration
 stripe:
   enabled: true
   apiUrl: https://api.stripe.com
   timeout: 1000
-  supportedCurrencies: [USD, EUR, GBP, CAD]
+  supportedCurrencies:
+    - USD
+    - EUR
+    - GBP
+    - CAD
+
+# PayPal Configuration
+paypal:
+  enabled: true
+  apiUrl: https://api.paypal.com
+  timeout: 2000
+  environment: sandbox  # sandbox or live
+  clientId: ${PAYPAL_CLIENT_ID:demo_client_id}
+  clientSecret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
+  supportedCurrencies:
+    - USD
+    - EUR
+    - GBP
+    - CAD
+    - AUD
+  feePercentage: 2.9
+  fixedFee: 0.30
+
+# Credit Card Configuration (using kebab-case)
+credit-card:
+  enabled: true
+  timeout: 1500
+  processorName: "Secure Payment Processor"
+  acceptedCardTypes:
+    - VISA
+    - MASTERCARD
+    - AMERICAN_EXPRESS
+    - DISCOVER
+  processingFeePercentage: 2.5
+  requireCvv: true
+  requireBillingAddress: false
+  maxRetryAttempts: 3
 
   

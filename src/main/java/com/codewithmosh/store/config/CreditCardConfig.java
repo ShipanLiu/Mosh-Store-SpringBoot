@@ -10,7 +10,7 @@ import java.util.List;
  * Credit Card payment configuration properties
  */
 @Configuration
-@ConfigurationProperties(prefix = "creditCard")
+@ConfigurationProperties(prefix = "credit-card")
 public class CreditCardConfig {
     
     private boolean enabled = true;
