@@ -6,40 +6,50 @@
 package com.codewithmosh.store.service.payment;
 
 import com.codewithmosh.store.service.payment.processors.PaymentService;
+import com.codewithmosh.store.service.payment.processors.PayPalPaymentService;
+import com.codewithmosh.store.service.payment.processors.CreditCardPaymentService;
+import com.codewithmosh.store.service.payment.processors.StripePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Payment facade service that delegates payment processing to the configured payment provider.
- * This service acts as a facade to abstract the specific payment implementation details
- * and allows dynamic switching between payment methods.
+ * Simple design with direct injection of all payment services.
  */
 @Service
 public class PaymentFacade {
 
-    private final ApplicationContext applicationContext;
-    private final Map<String, PaymentService> paymentServices;
+    // Direct injection of all payment services
+    private final PayPalPaymentService paypalService;
+    private final CreditCardPaymentService creditCardService;
+    private final StripePaymentService stripeService;
+    
+    // Current active payment service
     private PaymentService currentPaymentService;
     
     @Value("${payment.default-method:paypal}")
     private String defaultPaymentMethod;
 
     @Autowired
-    public PaymentFacade(ApplicationContext applicationContext, Map<String, PaymentService> paymentServices) {
-        this.applicationContext = applicationContext;
-        this.paymentServices = paymentServices;
-        // Initialize with default payment method
-        initializeDefaultPaymentService();
+    public PaymentFacade(PayPalPaymentService paypalService, 
+                        CreditCardPaymentService creditCardService, 
+                        StripePaymentService stripeService) {
+        this.paypalService = paypalService;
+        this.creditCardService = creditCardService;
+        this.stripeService = stripeService;
     }
 
     /**
-     * Initialize the default payment service based on configuration
+     * Initialize the default payment service after all properties are injected
      */
-    private void initializeDefaultPaymentService() {
+    @PostConstruct
+    public void initializeDefaultPaymentService() {
+        System.out.println("Initializing PaymentFacade with default method: " + defaultPaymentMethod);
         setPaymentMethod(defaultPaymentMethod);
     }
 
@@ -60,53 +70,51 @@ public class PaymentFacade {
     }
 
     /**
-     * Set the payment method dynamically
-     * @param paymentMethod the payment method to use (paypal, stripe, creditCard)
+     * Set the payment method - much simpler!
      */
     public void setPaymentMethod(String paymentMethod) {
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             throw new IllegalArgumentException("Payment method cannot be null or empty");
         }
 
-        // Handle both creditCard and credit-card for backward compatibility
-        String beanName = paymentMethod.toLowerCase();
-        if ("credit-card".equals(beanName)) {
-            beanName = "creditCard";
+        switch (paymentMethod.toLowerCase()) {
+            case "paypal":
+                currentPaymentService = paypalService;
+                break;
+            case "creditcard":
+            case "credit-card":
+                currentPaymentService = creditCardService;
+                break;
+            case "stripe":
+                currentPaymentService = stripeService;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod + 
+                    ". Available methods: paypal, creditCard, stripe");
         }
         
-        PaymentService paymentService = paymentServices.get(beanName);
-        
-        if (paymentService == null) {
-            throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod + 
-                ". Available methods: " + paymentServices.keySet());
-        }
-        
-        this.currentPaymentService = paymentService;
+        System.out.println("Payment method set to: " + paymentMethod);
     }
 
     /**
      * Get the current payment method name
-     * @return the current payment method name
      */
     public String getCurrentPaymentMethod() {
         if (currentPaymentService == null) {
             return "none";
         }
         
-        // Find the bean name for the current service
-        for (Map.Entry<String, PaymentService> entry : paymentServices.entrySet()) {
-            if (entry.getValue() == currentPaymentService) {
-                return entry.getKey();
-            }
-        }
+        if (currentPaymentService == paypalService) return "paypal";
+        if (currentPaymentService == creditCardService) return "creditCard";
+        if (currentPaymentService == stripeService) return "stripe";
+        
         return "unknown";
     }
 
     /**
      * Get available payment methods
-     * @return set of available payment method names
      */
-    public java.util.Set<String> getAvailablePaymentMethods() {
-        return paymentServices.keySet();
+    public List<String> getAvailablePaymentMethods() {
+        return Arrays.asList("paypal", "creditCard", "stripe");
     }
 } 
