@@ -17,14 +17,14 @@ import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Payment facade service that delegates payment processing to the configured payment provider.
- * Simple design with direct injection of all payment services.
- */
 @Service
 public class PaymentFacade {
 
-    // Direct injection of all payment services
+    private static final String PAYPAL_PAYMENT_NAME = "paypal";
+    private static final String CREDIT_CARD_PAYMENT_NAME = "credit-card";
+    private static final String STRIPE_PAYMENT_NAME = "stripe";
+
+
     private final PayPalPaymentService paypalService;
     private final CreditCardPaymentService creditCardService;
     private final StripePaymentService stripeService;
@@ -34,8 +34,8 @@ public class PaymentFacade {
     
     @Value("${payment.default-method:paypal}")
     private String defaultPaymentMethod;
+    private String currentPaymentMethod = defaultPaymentMethod;
 
-    @Autowired
     public PaymentFacade(PayPalPaymentService paypalService, 
                         CreditCardPaymentService creditCardService, 
                         StripePaymentService stripeService) {
@@ -53,10 +53,6 @@ public class PaymentFacade {
         setPaymentMethod(defaultPaymentMethod);
     }
 
-    /**
-     * Process a payment using the currently configured payment provider
-     * @param amount the amount to process
-     */
     public void processPayment(double amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Payment amount must be positive");
@@ -80,6 +76,7 @@ public class PaymentFacade {
         switch (paymentMethod.toLowerCase()) {
             case "paypal":
                 currentPaymentService = paypalService;
+                currentPaymentMethod = "paypal";
                 break;
             case "creditcard":
             case "credit-card":

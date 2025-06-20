@@ -1,6 +1,11 @@
 package com.codewithmosh.store.controller;
 
 import com.codewithmosh.store.service.payment.PaymentFacade;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/payment")
+@Tag(name = "Payment", description = "Payment processing and management API")
 public class PaymentController {
 
     private final PaymentFacade paymentFacade;
@@ -23,9 +29,17 @@ public class PaymentController {
      * Process a payment using request parameters (NOT path variables!)
      * POST /payment/process?amount=100.00&method=paypal
      */
+    @Operation(summary = "Process Payment", 
+               description = "Process a payment with specified amount and optional payment method")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment processed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid payment parameters")
+    })
     @PostMapping("/process")
     public ResponseEntity<Map<String, Object>> processPayment(
+            @Parameter(description = "Payment amount", required = true, example = "100.00")
             @RequestParam double amount,
+            @Parameter(description = "Payment method (optional)", example = "paypal")
             @RequestParam(required = false) String method) {
         
         Map<String, Object> response = new HashMap<>();

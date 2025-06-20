@@ -8,6 +8,36 @@ spring:
       import: "optional:classpath:.env"
   datasource:
     url: jdbc:mysql://localhost:3308/store
+  profiles:
+    active: dev
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Use Flyway for schema management
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    locations: classpath:db/migration
+    sql-migration-prefix: V
+    sql-migration-suffixes: .sql
+    
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: true
 
 # Payment Configuration - Use kebab-case consistently
 payment:
@@ -18,6 +48,9 @@ stripe:
   enabled: true
   api-url: https://api.stripe.com
   timeout: 1000
+  public-key: pk_test_demo_public_key
+  secret-key: sk_test_demo_secret_key
+  webhook-secret: whsec_demo_webhook_secret
   supported-currencies:
     - USD
     - EUR
@@ -28,10 +61,10 @@ stripe:
 paypal:
   enabled: true
   api-url: https://api.paypal.com
+  environment: sandbox
   timeout: 2000
-  environment: sandbox  # sandbox or live
-  client-id: ${PAYPAL_CLIENT_ID:demo_client_id}
-  client-secret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
+  client-id: demo_paypal_client_id
+  client-secret: demo_paypal_client_secret
   supported-currencies:
     - USD
     - EUR
@@ -44,8 +77,11 @@ paypal:
 # Credit Card Configuration - Use kebab-case
 credit-card:
   enabled: true
-  timeout: 1500
   processor-name: "Secure Payment Processor"
+  timeout: 1500
+  cvv-required: true
+  billing-address-required: false
+  max-retry-attempts: 3
   accepted-card-types:
     - VISA
     - MASTERCARD
@@ -57,6 +93,136 @@ credit-card:
   processingFeePercentage: 2.5
   requireCvv: true
   requireBillingAddress: false
-  maxRetryAttempts: 3
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  datasource:
+    url: jdbc:h2:mem:storedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false  # Disable Flyway for H2 development
+
+logging:
+  level:
+    com.codewithmosh.store: DEBUG
+    org.springframework.web: DEBUG
+
+---
+# Test Profile
+spring:
+  config:
+    activate:
+      on-profile: test
+      
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        
+  flyway:
+    enabled: false
+
+---
+# UAT Profile
+spring:
+  config:
+    activate:
+      on-profile: uat
+      
+  datasource:
+    url: jdbc:postgresql://localhost:5432/store_uat
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:store_uat}
+    password: ${DB_PASSWORD:store_uat_pass}
+    
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+      
+  flyway:
+    enabled: true
+    schemas: public
+    baseline-version: 1
+    
+logging:
+  level:
+    com.codewithmosh.store: INFO
+    org.springframework.web: WARN
+
+---
+# Production Profile  
+spring:
+  config:
+    activate:
+      on-profile: prod
+      
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:store_prod}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+      
+  flyway:
+    enabled: true
+    schemas: public
+    baseline-version: 1
+    validate-on-migrate: true
+    
+# Production PayPal Configuration
+paypal:
+  environment: live
+  api-url: https://api.paypal.com
+  
+# Production Stripe Configuration  
+stripe:
+  api-url: https://api.stripe.com
+
+logging:
+  level:
+    com.codewithmosh.store: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
 
   
