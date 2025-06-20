@@ -10,28 +10,29 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Payment configuration that creates all payment service beans.
  * This allows for dynamic switching between payment methods at runtime.
+ * Each payment service is properly configured with its respective configuration class.
  */
 @Configuration
 public class PaymentConfig {
 
     /**
-     * Credit Card payment service bean
+     * Credit Card payment service bean with configuration injection
      */
     @Bean("creditCard")
-    public PaymentService creditCardPaymentService() {
-        return new CreditCardPaymentService();
+    public PaymentService creditCardPaymentService(CreditCardConfig creditCardConfig) {
+        return new CreditCardPaymentService(creditCardConfig);
     }
 
     /**
-     * PayPal payment service bean
+     * PayPal payment service bean with configuration injection
      */
     @Bean("paypal")
-    public PaymentService payPalPaymentService() {
-        return new PayPalPaymentService();
+    public PaymentService payPalPaymentService(PayPalConfig payPalConfig) {
+        return new PayPalPaymentService(payPalConfig);
     }
 
     /**
-     * Stripe payment service bean
+     * Stripe payment service bean with configuration injection
      */
     @Bean("stripe")
     public PaymentService stripePaymentService(StripeConfig stripeConfig) {

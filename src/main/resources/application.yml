@@ -7,32 +7,46 @@ spring:
   config:
       import: "optional:classpath:.env"
   datasource:
-    url: jdbc:mysql://localhost:3308/store
+    url: jdbc:mysql://localhost:3308/cdb_mosh_store
+    username:
+    password:
+    driver-class-name:
+
+
+
+
+
+
 
 # Payment Configuration
 payment:
-  default-method: paypal  # Default payment method: paypal, stripe, creditCard
-  gateway: ${payment.default-method}  # For backward compatibility
+  default-method: paypal  # Easy to change!
 
-# Stripe Configuration
+# Comprehensive PayPal Configuration
+paypal:
+  enabled: true
+  environment: sandbox
+  clientId: ${PAYPAL_CLIENT_ID:demo_client_id}
+  clientSecret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
+  supportedCurrencies: [USD, EUR, GBP, CAD, AUD]
+  feePercentage: 2.9
+  fixedFee: 0.30
+
+# Comprehensive Credit Card Configuration
+creditCard:
+  enabled: true
+  processorName: "Secure Payment Processor"
+  acceptedCardTypes: [VISA, MASTERCARD, AMERICAN_EXPRESS, DISCOVER]
+  processingFeePercentage: 2.5
+  requireCvv: true
+  requireBillingAddress: false
+  maxRetryAttempts: 3
+
+# Enhanced Stripe Configuration
 stripe:
   enabled: true
   apiUrl: https://api.stripe.com
   timeout: 1000
-  supportedCurrencies:
-    - USD
-    - EUR
-    - GBP
-
-# PayPal Configuration (example)
-paypal:
-  enabled: true
-  apiUrl: https://api.paypal.com
-  timeout: 2000
-
-# Credit Card Configuration (example)  
-creditCard:
-  enabled: true
-  timeout: 1500
+  supportedCurrencies: [USD, EUR, GBP, CAD]
 
   
