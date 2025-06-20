@@ -104,7 +104,7 @@ spring:
       on-profile: dev
   
   datasource:
-    url: jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce
+    url: jdbc:mysql://localhost:3306/cdb_mosh_p1_ecommerce
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
@@ -158,7 +158,7 @@ spring:
       on-profile: uat
       
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/${DB_NAME:cdb_mosh_p1_ecommerce_uat}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cdb_mosh_p1_ecommerce_uat}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
@@ -185,7 +185,7 @@ spring:
       on-profile: prod
       
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/${DB_NAME:cdb_mosh_p1_ecommerce_prod}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cdb_mosh_p1_ecommerce_prod}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}

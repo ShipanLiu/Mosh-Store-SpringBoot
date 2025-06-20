@@ -46,7 +46,9 @@ public class HomeController {
     @GetMapping("/register")
     public ResponseEntity<String> registerUser() {
         try {
-            userService.register(new User(1L, "shipanliu", "liushi2n", "19980223"));
+            // Create user without ID (auto-generated) and with proper field names
+            User newUser = new User("shipanliu", "shipan@example.com", "Shipan", "Liu", "hashedPassword123");
+            userService.register(newUser);
             return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error registering user: " + e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -58,6 +60,7 @@ public class HomeController {
     public User getUserInfo() {
         // This method demonstrates the use of @ResponseBody
         // The User object will be automatically converted to JSON
-        return new User(1L, "example_user", "user@example.com", "password123");
+        // Create user without ID (auto-generated) and with proper field names
+        return new User("example_user", "user@example.com", "John", "Doe", "hashedPassword123");
     }
 }
