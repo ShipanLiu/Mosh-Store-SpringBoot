@@ -9,49 +9,51 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3308/store
 
-# Payment Configuration
+# Payment Configuration - Use kebab-case consistently
 payment:
   default-method: paypal  # Default payment method: paypal, stripe, credit-card
-  gateway: ${payment.default-method}  # For backward compatibility
 
 # Stripe Configuration
 stripe:
   enabled: true
-  apiUrl: https://api.stripe.com
+  api-url: https://api.stripe.com
   timeout: 1000
-  supportedCurrencies:
+  supported-currencies:
     - USD
     - EUR
     - GBP
     - CAD
 
-# PayPal Configuration
+# PayPal Configuration - Use kebab-case
 paypal:
   enabled: true
-  apiUrl: https://api.paypal.com
+  api-url: https://api.paypal.com
   timeout: 2000
   environment: sandbox  # sandbox or live
-  clientId: ${PAYPAL_CLIENT_ID:demo_client_id}
-  clientSecret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
-  supportedCurrencies:
+  client-id: ${PAYPAL_CLIENT_ID:demo_client_id}
+  client-secret: ${PAYPAL_CLIENT_SECRET:demo_client_secret}
+  supported-currencies:
     - USD
     - EUR
     - GBP
     - CAD
     - AUD
-  feePercentage: 2.9
-  fixedFee: 0.30
+  fee-percentage: 2.9
+  fixed-fee: 0.30
 
-# Credit Card Configuration (using kebab-case)
+# Credit Card Configuration - Use kebab-case
 credit-card:
   enabled: true
   timeout: 1500
-  processorName: "Secure Payment Processor"
-  acceptedCardTypes:
+  processor-name: "Secure Payment Processor"
+  accepted-card-types:
     - VISA
     - MASTERCARD
     - AMERICAN_EXPRESS
     - DISCOVER
+  processing-fee-percentage: 2.5
+  require-cvv: true
+  require-billing-address: false
   processingFeePercentage: 2.5
   requireCvv: true
   requireBillingAddress: false
