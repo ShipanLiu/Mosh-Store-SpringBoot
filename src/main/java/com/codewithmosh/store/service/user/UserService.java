@@ -24,6 +24,6 @@ public class UserService {
             throw new IllegalArgumentException("User already exists: " + user.getEmail());
         }
         userRepository.save(user);
-        notificationService.sendNotification("Welcome to our store, " + user.getName() + " your registered Email: " + user.getEmail());
+        notificationService.sendNotification("Welcome to our store, " + user.getUsername() + " your registered Email: " + user.getEmail());
     }
 }

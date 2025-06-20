@@ -1,10 +1,11 @@
 -- Initial database schema for Store Application
 -- Version: 1.0
 -- Description: Create initial tables for users, products, orders, and payments
+-- Database: MySQL
 
 -- Create users table
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     first_name VARCHAR(50) NOT NULL,
@@ -13,22 +14,22 @@ CREATE TABLE users (
     phone VARCHAR(20),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create categories table
 CREATE TABLE categories (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create products table
 CREATE TABLE products (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
@@ -37,13 +38,13 @@ CREATE TABLE products (
     sku VARCHAR(50) UNIQUE,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
 -- Create orders table
 CREATE TABLE orders (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     order_number VARCHAR(50) NOT NULL UNIQUE,
     total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
@@ -51,16 +52,16 @@ CREATE TABLE orders (
     shipping_address TEXT,
     billing_address TEXT,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    shipped_date TIMESTAMP,
-    delivered_date TIMESTAMP,
+    shipped_date TIMESTAMP NULL,
+    delivered_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Create order_items table
 CREATE TABLE order_items (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
@@ -73,15 +74,15 @@ CREATE TABLE order_items (
 
 -- Create payments table
 CREATE TABLE payments (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     payment_method VARCHAR(20) NOT NULL,
     payment_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
     transaction_id VARCHAR(100),
-    payment_date TIMESTAMP,
+    payment_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 

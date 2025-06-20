@@ -1,10 +1,11 @@
 -- Add audit and additional features
 -- Version: 2.0
 -- Description: Add audit trails, user roles, and product reviews
+-- Database: MySQL
 
 -- Create user_roles table
 CREATE TABLE user_roles (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     role_name VARCHAR(50) NOT NULL,
     granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -17,7 +18,7 @@ CREATE TABLE user_roles (
 
 -- Create product_reviews table
 CREATE TABLE product_reviews (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
@@ -25,7 +26,7 @@ CREATE TABLE product_reviews (
     comment TEXT,
     is_verified_purchase BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     UNIQUE(product_id, user_id)
@@ -33,12 +34,12 @@ CREATE TABLE product_reviews (
 
 -- Create audit_log table
 CREATE TABLE audit_log (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     table_name VARCHAR(50) NOT NULL,
     record_id BIGINT NOT NULL,
     action VARCHAR(20) NOT NULL, -- INSERT, UPDATE, DELETE
-    old_values JSONB,
-    new_values JSONB,
+    old_values JSON,
+    new_values JSON,
     changed_by BIGINT,
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (changed_by) REFERENCES users(id)
@@ -46,12 +47,12 @@ CREATE TABLE audit_log (
 
 -- Add discount and promotion support
 ALTER TABLE products ADD COLUMN discount_percentage DECIMAL(5,2) DEFAULT 0 CHECK (discount_percentage >= 0 AND discount_percentage <= 100);
-ALTER TABLE products ADD COLUMN promotion_start_date TIMESTAMP;
-ALTER TABLE products ADD COLUMN promotion_end_date TIMESTAMP;
+ALTER TABLE products ADD COLUMN promotion_start_date TIMESTAMP NULL;
+ALTER TABLE products ADD COLUMN promotion_end_date TIMESTAMP NULL;
 
 -- Add customer addresses
 CREATE TABLE user_addresses (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     address_type VARCHAR(20) NOT NULL, -- BILLING, SHIPPING
     street_address VARCHAR(200) NOT NULL,
@@ -61,20 +62,20 @@ CREATE TABLE user_addresses (
     country VARCHAR(100) NOT NULL,
     is_default BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Create payment_methods table for saved payment methods
 CREATE TABLE payment_methods (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     method_type VARCHAR(20) NOT NULL, -- CREDIT_CARD, PAYPAL, STRIPE
     method_name VARCHAR(100) NOT NULL,
     is_default BOOLEAN DEFAULT false,
     encrypted_data TEXT, -- Encrypted payment details
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

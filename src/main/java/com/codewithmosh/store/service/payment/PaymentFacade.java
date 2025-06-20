@@ -74,16 +74,17 @@ public class PaymentFacade {
         }
 
         switch (paymentMethod.toLowerCase()) {
-            case "paypal":
+            case PAYPAL_PAYMENT_NAME:
                 currentPaymentService = paypalService;
-                currentPaymentMethod = "paypal";
+                currentPaymentMethod = PAYPAL_PAYMENT_NAME;
                 break;
-            case "creditcard":
-            case "credit-card":
+            case CREDIT_CARD_PAYMENT_NAME:
                 currentPaymentService = creditCardService;
+                currentPaymentMethod = CREDIT_CARD_PAYMENT_NAME;
                 break;
-            case "stripe":
+            case STRIPE_PAYMENT_NAME:
                 currentPaymentService = stripeService;
+                currentPaymentMethod = STRIPE_PAYMENT_NAME;
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod + 
@@ -97,15 +98,7 @@ public class PaymentFacade {
      * Get the current payment method name
      */
     public String getCurrentPaymentMethod() {
-        if (currentPaymentService == null) {
-            return "none";
-        }
-        
-        if (currentPaymentService == paypalService) return "paypal";
-        if (currentPaymentService == creditCardService) return "creditCard";
-        if (currentPaymentService == stripeService) return "stripe";
-        
-        return "unknown";
+        return currentPaymentMethod;
     }
 
     /**
