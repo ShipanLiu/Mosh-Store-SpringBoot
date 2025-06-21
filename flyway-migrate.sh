@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
-ENVIRONMENT=${1:-dev}
+ENVIRONMENT=${1:-local}
 COMMAND=${2:-migrate}
 
 echo -e "${BLUE}🚀 Flyway Migration Tool${NC}"
@@ -44,11 +44,18 @@ run_flyway() {
 
 # Environment-specific configurations
 case $ENVIRONMENT in
-    "dev")
-        echo -e "${YELLOW}📋 Development Environment${NC}"
-        DB_URL="jdbc:mysql://localhost:3306/cdb_mosh_p1_ecommerce"
+    "local")
+        echo -e "${YELLOW}📋 Local Environment${NC}"
+        DB_URL="jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true"
         DB_USER="${DB_USERNAME:-root}"
-        DB_PASS="${DB_PASSWORD:-}"
+        DB_PASS="${DB_PASSWORD:-19980223}"
+        ;;
+        
+    "tu")
+        echo -e "${YELLOW}📋 Test Environment${NC}"
+        DB_URL="jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app_tu?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true"
+        DB_USER="${DB_USERNAME:-root}"
+        DB_PASS="${DB_PASSWORD:-19980223}"
         ;;
     
     "uat")
@@ -58,7 +65,7 @@ case $ENVIRONMENT in
             echo "Set it with: export DB_HOST=your-uat-server.com"
             exit 1
         fi
-        DB_URL="jdbc:mysql://${DB_HOST}:${DB_PORT:-3306}/cdb_mosh_p1_ecommerce_uat"
+        DB_URL="jdbc:mysql://${DB_HOST}:${DB_PORT:-3308}/cdb_mosh_p1_ecommerce_app_uat?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true"
         DB_USER="${DB_USERNAME}"
         DB_PASS="${DB_PASSWORD}"
         ;;
@@ -76,14 +83,14 @@ case $ENVIRONMENT in
             exit 1
         fi
         
-        DB_URL="jdbc:mysql://${DB_HOST}:${DB_PORT:-3306}/cdb_mosh_p1_ecommerce_prod"
+        DB_URL="jdbc:mysql://${DB_HOST}:${DB_PORT:-3308}/cdb_mosh_p1_ecommerce_app_prod?useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC&requireSSL=true"
         DB_USER="${DB_USERNAME}"
         DB_PASS="${DB_PASSWORD}"
         ;;
     
     *)
         echo -e "${RED}❌ Error: Unknown environment '$ENVIRONMENT'${NC}"
-        echo "Supported environments: dev, uat, prod"
+        echo "Supported environments: local, tu, uat, prod"
         exit 1
         ;;
 esac
@@ -127,6 +134,7 @@ case $COMMAND in
         echo -e "${BLUE}💡 Next steps:${NC}"
         echo "  - Run './flyway-migrate.sh $ENVIRONMENT info' to see migration status"
         echo "  - Run './flyway-migrate.sh $ENVIRONMENT validate' to validate migrations"
+        echo "  - Start your Spring Boot application to verify migrations"
         ;;
     "info")
         echo -e "${BLUE}💡 Tip:${NC} Run './flyway-migrate.sh $ENVIRONMENT migrate' to apply pending migrations"

@@ -303,3 +303,107 @@ The application will automatically:
 - Start the web server on port 8080
 - Initialize payment services
 - Enable Swagger UI for API documentation 
+
+# Spring Boot Application Startup Guide
+
+This guide explains how to run the Spring Boot application with different profiles and how database migrations work.
+
+## Available Profiles
+
+The application supports the following profiles:
+
+- **local**: For local development (default)
+- **tu**: For test unit environment
+- **uat**: For User Acceptance Testing environment
+- **prod**: For production environment
+
+## Running the Application
+
+### Using Maven
+
+```bash
+# Run with local profile (default)
+./mvnw spring-boot:run
+
+# Run with a specific profile
+./mvnw spring-boot:run -Dspring.profiles.active=local
+./mvnw spring-boot:run -Dspring.profiles.active=tu
+./mvnw spring-boot:run -Dspring.profiles.active=uat
+./mvnw spring-boot:run -Dspring.profiles.active=prod
+```
+
+### Using JAR File
+
+```bash
+# Build the application
+./mvnw clean package
+
+# Run with local profile (default)
+java -jar target/store-0.0.1-SNAPSHOT.jar
+
+# Run with a specific profile
+java -jar target/store-0.0.1-SNAPSHOT.jar --spring.profiles.active=local
+java -jar target/store-0.0.1-SNAPSHOT.jar --spring.profiles.active=tu
+java -jar target/store-0.0.1-SNAPSHOT.jar --spring.profiles.active=uat
+java -jar target/store-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+```
+
+## Database Migrations
+
+### Automatic Migrations
+
+By default, Flyway migrations run automatically when the application starts up (except in production). The migrations are located in:
+
+```
+src/main/resources/db/migration
+```
+
+### Manual Migrations
+
+You can also run migrations manually using the provided script:
+
+```bash
+# Run migrations for local environment (default)
+./flyway-migrate.sh local
+
+# Run migrations for other environments
+./flyway-migrate.sh tu
+./flyway-migrate.sh uat
+./flyway-migrate.sh prod
+
+# Run specific Flyway commands
+./flyway-migrate.sh local info
+./flyway-migrate.sh local validate
+```
+
+## Environment Variables
+
+The application uses the following environment variables:
+
+- `DB_USERNAME`: Database username (default: root)
+- `DB_PASSWORD`: Database password (default: 19980223)
+- `DB_HOST`: Database host (default: localhost)
+- `DB_PORT`: Database port (default: 3308)
+
+These variables can be set in the `.env` file located at:
+
+```
+src/main/resources/.env
+```
+
+## Configuration Files
+
+- `application.yml`: Common configuration for all profiles
+- `application-local.yml`: Local development configuration
+- `application-tu.yml`: Test unit configuration
+- `application-uat.yml`: UAT configuration
+- `application-prod.yml`: Production configuration
+
+## Troubleshooting
+
+If you encounter issues with database connections:
+
+1. Verify the database server is running
+2. Check the connection details in the profile-specific configuration file
+3. Ensure the environment variables are set correctly
+4. Run Flyway migrations manually to check for migration issues 

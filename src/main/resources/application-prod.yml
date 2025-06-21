@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3308}/cdb_mosh_p1_ecommerce_app_prod?useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC&requireSSL=true
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # In production, disable auto-migration for safety
+  flyway:
+    enabled: false  # Manual migration control in production
+
+logging:
+  level:
+    com.codewithmosh.store: WARN
+    org.springframework.web: ERROR
+
+# Production-specific settings
+springdoc:
+  swagger-ui:
+    enabled: false  # Disable Swagger UI in production 
