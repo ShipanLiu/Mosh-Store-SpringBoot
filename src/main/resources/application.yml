@@ -5,9 +5,20 @@ spring:
   application:
     name: mosh-store
   config:
-      import: "optional:classpath:.env"
+      import: "optional:file:./src/main/resources/.env"
   datasource:
-    url: jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce
+    url: jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:19980223}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      auto-commit: true
+      connection-test-query: SELECT 1
   profiles:
     active: dev
   
@@ -103,12 +114,6 @@ spring:
     activate:
       on-profile: dev
   
-  datasource:
-    url: jdbc:mysql://localhost:3306/cdb_mosh_p1_ecommerce
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
-    
   jpa:
     hibernate:
       ddl-auto: none  # DISABLED - Flyway controls schema
@@ -125,100 +130,3 @@ logging:
   level:
     com.codewithmosh.store: DEBUG
     org.springframework.web: DEBUG
-
----
-# Test Profile
-spring:
-  config:
-    activate:
-      on-profile: test
-      
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-    
-  jpa:
-    hibernate:
-      ddl-auto: create-drop  # Only for H2 testing
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        
-  flyway:
-    enabled: false  # Disable for H2 testing
-
----
-# UAT Profile
-spring:
-  config:
-    activate:
-      on-profile: uat
-      
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cdb_mosh_p1_ecommerce_uat}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
-    
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: none  # DISABLED - Flyway controls schema
-      
-  flyway:
-    enabled: true
-    baseline-version: 1
-    
-logging:
-  level:
-    com.codewithmosh.store: INFO
-    org.springframework.web: WARN
-
----
-# Production Profile  
-spring:
-  config:
-    activate:
-      on-profile: prod
-      
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:cdb_mosh_p1_ecommerce_prod}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: none  # DISABLED - Flyway controls schema
-      
-  flyway:
-    enabled: true
-    baseline-version: 1
-    validate-on-migrate: true
-    
-# Production PayPal Configuration
-paypal:
-  environment: live
-  api-url: https://api.paypal.com
-  
-# Production Stripe Configuration  
-stripe:
-  api-url: https://api.stripe.com
-
-logging:
-  level:
-    com.codewithmosh.store: WARN
-    org.springframework.web: WARN
-    org.hibernate: WARN
-
-  

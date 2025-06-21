@@ -127,17 +127,17 @@
 					<cleanDisabled>true</cleanDisabled>
 				</configuration>
 				
-				<!-- Profile-specific configurations -->
+				<!-- Environment-specific configurations using system properties -->
 				<executions>
 					<!-- Development Profile -->
 					<execution>
 						<id>flyway-dev</id>
 						<configuration>
-							<url>jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce</url>
+							<url>jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
 							<user>${DB_USERNAME}</user>
 							<password>${DB_PASSWORD}</password>
 							<schemas>
-								<schema>cdb_mosh_p1_ecommerce</schema>
+								<schema>cdb_mosh_p1_ecommerce_app</schema>
 							</schemas>
 						</configuration>
 					</execution>
@@ -146,11 +146,11 @@
 					<execution>
 						<id>flyway-uat</id>
 						<configuration>
-							<url>jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/cdb_mosh_p1_ecommerce_uat</url>
+							<url>jdbc:mysql://${DB_HOST}:${DB_PORT}/cdb_mosh_p1_ecommerce_app_uat?useSSL=true&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
 							<user>${DB_USERNAME}</user>
 							<password>${DB_PASSWORD}</password>
 							<schemas>
-								<schema>cdb_mosh_p1_ecommerce_uat</schema>
+								<schema>cdb_mosh_p1_ecommerce_app_uat</schema>
 							</schemas>
 						</configuration>
 					</execution>
@@ -159,11 +159,11 @@
 					<execution>
 						<id>flyway-prod</id>
 						<configuration>
-							<url>jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/cdb_mosh_p1_ecommerce_prod</url>
+							<url>jdbc:mysql://${DB_HOST}:${DB_PORT}/cdb_mosh_p1_ecommerce_app_prod?useSSL=true&amp;allowPublicKeyRetrieval=false&amp;serverTimezone=UTC&amp;requireSSL=true</url>
 							<user>${DB_USERNAME}</user>
 							<password>${DB_PASSWORD}</password>
 							<schemas>
-								<schema>cdb_mosh_p1_ecommerce_prod</schema>
+								<schema>cdb_mosh_p1_ecommerce_app_prod</schema>
 							</schemas>
 							<cleanDisabled>true</cleanDisabled>
 							<baselineOnMigrate>false</baselineOnMigrate>
