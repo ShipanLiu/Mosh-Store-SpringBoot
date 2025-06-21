@@ -15,8 +15,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
-ENVIRONMENT=${1:-local}
-COMMAND=${2:-migrate}
+ENVIRONMENT=${1:-local}  # local, tu, uat, prod
+COMMAND=${2:-migrate}    # migrate, info, validate, baseline, repair, clean
 
 echo -e "${BLUE}🚀 Flyway Migration Tool${NC}"
 echo -e "${BLUE}Environment: ${YELLOW}$ENVIRONMENT${NC}"
@@ -134,7 +134,7 @@ case $COMMAND in
         echo -e "${BLUE}💡 Next steps:${NC}"
         echo "  - Run './flyway-migrate.sh $ENVIRONMENT info' to see migration status"
         echo "  - Run './flyway-migrate.sh $ENVIRONMENT validate' to validate migrations"
-        echo "  - Start your Spring Boot application to verify migrations"
+        echo "  - Start your Spring Boot application with: ./mvnw spring-boot:run -Dspring.profiles.active=$ENVIRONMENT"
         ;;
     "info")
         echo -e "${BLUE}💡 Tip:${NC} Run './flyway-migrate.sh $ENVIRONMENT migrate' to apply pending migrations"

@@ -129,9 +129,9 @@
 				
 				<!-- Environment-specific configurations using system properties -->
 				<executions>
-					<!-- Development Profile -->
+					<!-- Local Profile -->
 					<execution>
-						<id>flyway-dev</id>
+						<id>flyway-local</id>
 						<configuration>
 							<url>jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
 							<user>${DB_USERNAME}</user>
@@ -142,11 +142,24 @@
 						</configuration>
 					</execution>
 					
+					<!-- Test Unit Profile -->
+					<execution>
+						<id>flyway-tu</id>
+						<configuration>
+							<url>jdbc:mysql://localhost:3308/cdb_mosh_p1_ecommerce_app_tu?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
+							<user>${DB_USERNAME}</user>
+							<password>${DB_PASSWORD}</password>
+							<schemas>
+								<schema>cdb_mosh_p1_ecommerce_app_tu</schema>
+							</schemas>
+						</configuration>
+					</execution>
+					
 					<!-- UAT Profile -->
 					<execution>
 						<id>flyway-uat</id>
 						<configuration>
-							<url>jdbc:mysql://${DB_HOST}:${DB_PORT}/cdb_mosh_p1_ecommerce_app_uat?useSSL=true&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
+							<url>jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3308}/cdb_mosh_p1_ecommerce_app_uat?useSSL=true&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC&amp;createDatabaseIfNotExist=true</url>
 							<user>${DB_USERNAME}</user>
 							<password>${DB_PASSWORD}</password>
 							<schemas>
@@ -159,7 +172,7 @@
 					<execution>
 						<id>flyway-prod</id>
 						<configuration>
-							<url>jdbc:mysql://${DB_HOST}:${DB_PORT}/cdb_mosh_p1_ecommerce_app_prod?useSSL=true&amp;allowPublicKeyRetrieval=false&amp;serverTimezone=UTC&amp;requireSSL=true</url>
+							<url>jdbc:mysql://${DB_HOST}:${DB_PORT:3308}/cdb_mosh_p1_ecommerce_app_prod?useSSL=true&amp;allowPublicKeyRetrieval=false&amp;serverTimezone=UTC&amp;requireSSL=true</url>
 							<user>${DB_USERNAME}</user>
 							<password>${DB_PASSWORD}</password>
 							<schemas>
