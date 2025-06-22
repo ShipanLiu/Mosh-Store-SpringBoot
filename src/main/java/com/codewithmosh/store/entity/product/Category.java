@@ -1,4 +1,4 @@
-package com.codewithmosh.store.entity;
+package com.codewithmosh.store.entity.product;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

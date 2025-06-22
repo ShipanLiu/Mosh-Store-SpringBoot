@@ -1,4 +1,4 @@
-package com.codewithmosh.store.entity;
+package com.codewithmosh.store.entity.user;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;

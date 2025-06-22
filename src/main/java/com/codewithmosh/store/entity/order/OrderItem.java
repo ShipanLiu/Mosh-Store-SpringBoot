@@ -1,5 +1,6 @@
-package com.codewithmosh.store.entity;
+package com.codewithmosh.store.entity.order;
 
+import com.codewithmosh.store.entity.product.Product;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;

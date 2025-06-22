@@ -1,5 +1,6 @@
-package com.codewithmosh.store.entity;
+package com.codewithmosh.store.entity.user;
 
+import com.codewithmosh.store.entity.order.Order;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

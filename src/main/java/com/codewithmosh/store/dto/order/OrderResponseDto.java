@@ -1,7 +1,7 @@
 package com.codewithmosh.store.dto.order;
 
 import com.codewithmosh.store.dto.user.UserSummaryDto;
-import com.codewithmosh.store.entity.Order.OrderStatus;
+import com.codewithmosh.store.entity.order.Order.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

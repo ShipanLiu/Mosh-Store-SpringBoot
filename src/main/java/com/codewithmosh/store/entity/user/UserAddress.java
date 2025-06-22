@@ -1,4 +1,4 @@
-package com.codewithmosh.store.entity;
+package com.codewithmosh.store.entity.user;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +24,7 @@ public class UserAddress {
     @Column(name = "address_type", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private AddressType addressType;
-    
+
     @Column(name = "street_address", nullable = false, length = 200)
     @NotBlank(message = "Street address is required")
     private String streetAddress;

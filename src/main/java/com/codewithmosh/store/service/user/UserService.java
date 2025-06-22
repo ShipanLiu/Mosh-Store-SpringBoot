@@ -1,6 +1,6 @@
 package com.codewithmosh.store.service.user;
 
-import com.codewithmosh.store.entity.User;
+import com.codewithmosh.store.entity.user.User;
 import com.codewithmosh.store.repository.UserRepository;
 import com.codewithmosh.store.service.notification.NotificationService;
 import org.springframework.stereotype.Service;

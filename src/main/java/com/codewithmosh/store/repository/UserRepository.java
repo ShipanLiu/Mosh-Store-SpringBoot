@@ -1,6 +1,6 @@
 package com.codewithmosh.store.repository;
 
-import com.codewithmosh.store.entity.User;
+import com.codewithmosh.store.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -10,7 +10,13 @@ import com.codewithmosh.store.dto.product.ProductSummaryDto;
 import com.codewithmosh.store.dto.user.UserResponseDto;
 import com.codewithmosh.store.dto.user.UserSummaryDto;
 import com.codewithmosh.store.dto.payment.PaymentResponseDto;
-import com.codewithmosh.store.entity.*;
+import com.codewithmosh.store.entity.order.Order;
+import com.codewithmosh.store.entity.order.OrderItem;
+import com.codewithmosh.store.entity.payment.Payment;
+import com.codewithmosh.store.entity.product.Category;
+import com.codewithmosh.store.entity.product.Product;
+import com.codewithmosh.store.entity.user.User;
+import com.codewithmosh.store.entity.user.UserRole;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

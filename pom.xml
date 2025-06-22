@@ -98,6 +98,11 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>annotationProcessor</scope>
+		</dependency>
 
 	</dependencies>
 
@@ -112,9 +117,8 @@
 			<plugin>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-maven-plugin</artifactId>
-				<version>10.10.0</version>
+				<version>11.8.1</version>
 				<configuration>
-					<!-- Default configuration -->
 					<locations>
 						<location>classpath:db/migration</location>
 					</locations>
@@ -127,7 +131,7 @@
 					<cleanDisabled>true</cleanDisabled>
 				</configuration>
 				
-				<!-- Environment-specific configurations using system properties -->
+				<!-- Environment-specific c onfigurations using system properties -->
 				<executions>
 					<!-- Local Profile -->
 					<execution>

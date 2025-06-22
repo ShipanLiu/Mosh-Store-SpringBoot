@@ -1,10 +1,9 @@
 package com.codewithmosh.store.controller;
 
-import com.codewithmosh.store.entity.User;
+import com.codewithmosh.store.entity.user.User;
 import com.codewithmosh.store.service.notification.NotificationService;
 import com.codewithmosh.store.service.order.OrderService;
 import com.codewithmosh.store.service.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.codewithmosh.store.dto.payment;
 
-import com.codewithmosh.store.entity.Payment.PaymentStatus;
+import com.codewithmosh.store.entity.payment.Payment.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
