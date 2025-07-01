@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: mosh-store
+    version: 1.0.0
   config:
       import: "optional:file:./src/main/resources/.env"
   datasource:
