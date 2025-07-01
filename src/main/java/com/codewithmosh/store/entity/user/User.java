@@ -5,17 +5,29 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // the @Builder needs this AllArgsConstructor
+@ToString(exclude = {"passwordHash", "roles", "orders", "addresses"})
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_username", columnList = "username"),
+        @Index(name = "idx_user_active", columnList = "is_active")
+})
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,31 +35,38 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Setter
     private String username;
     
     @Column(unique = true, nullable = false, length = 100)
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
+    @Setter
     private String email;
     
     @Column(name = "first_name", nullable = false, length = 50)
     @NotBlank(message = "First name is required")
     @Size(max = 50, message = "First name cannot exceed 50 characters")
+    @Setter
     private String firstName;
     
     @Column(name = "last_name", nullable = false, length = 50)
     @NotBlank(message = "Last name is required")
     @Size(max = 50, message = "Last name cannot exceed 50 characters")
+    @Setter
     private String lastName;
     
     @Column(name = "password_hash", nullable = false)
     @NotBlank(message = "Password is required")
+    @Setter(AccessLevel.PRIVATE)
     private String passwordHash;
     
     @Column(length = 20)
+    @Setter
     private String phone;
     
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
     
     @CreationTimestamp
@@ -58,86 +77,167 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    // Relationships
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // Relationships with proper initialization
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private Set<UserRole> roles = new HashSet<>();
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<Order> orders = new HashSet<>();
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<UserAddress> addresses = new HashSet<>();
-    
-    // Constructors
-    public User() {}
-    
-    public User(String username, String email, String firstName, String lastName, String passwordHash) {
-        this.username = username;
-        this.email = email;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.passwordHash = passwordHash;
+
+    // Factory method for creating new users (best practice alternative to custom constructor)
+    public static User createUser(String username, String email, String firstName, String lastName, String passwordHash) {
+        return User.builder()
+                .username(username)
+                .email(email)
+                .firstName(firstName)
+                .lastName(lastName)
+                .passwordHash(passwordHash)
+                .isActive(true)
+                .build();
     }
-    
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
-    
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
-    public Set<UserRole> getRoles() { return roles; }
-    public void setRoles(Set<UserRole> roles) { this.roles = roles; }
-    
-    public Set<Order> getOrders() { return orders; }
-    public void setOrders(Set<Order> orders) { this.orders = orders; }
-    
-    public Set<UserAddress> getAddresses() { return addresses; }
-    public void setAddresses(Set<UserAddress> addresses) { this.addresses = addresses; }
-    
+
+    // Secure password handling
+    public void updatePassword(String rawPassword, PasswordEncoder passwordEncoder) {
+        Objects.requireNonNull(rawPassword, "Password cannot be null");
+        Objects.requireNonNull(passwordEncoder, "PasswordEncoder cannot be null");
+        if (rawPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
+        }
+        this.passwordHash = passwordEncoder.encode(rawPassword);
+    }
+
+    public boolean isPasswordMatch(String rawPassword, PasswordEncoder passwordEncoder) {
+        Objects.requireNonNull(rawPassword, "Password cannot be null");
+        Objects.requireNonNull(passwordEncoder, "PasswordEncoder cannot be null");
+        return passwordEncoder.matches(rawPassword, this.passwordHash);
+    }
+
+    // Account management
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(this.isActive);
+    }
+
+    // Role management with proper bidirectional handling
+    public Set<UserRole> getRoles() {
+        return new HashSet<>(roles); // Defensive copy
+    }
+
+    public void addRole(UserRole role) {
+        Objects.requireNonNull(role, "Role cannot be null");
+        if (roles.add(role)) {
+            role.setUser(this);
+        }
+    }
+
+    public void removeRole(UserRole role) {
+        Objects.requireNonNull(role, "Role cannot be null");
+        if (roles.remove(role)) {
+            role.setUser(null);
+        }
+    }
+
+    public boolean hasRole(String roleName) {
+        Objects.requireNonNull(roleName, "Role name cannot be null");
+        return roles.stream()
+                .anyMatch(role -> roleName.equals(role.getRoleName()) && 
+                         Boolean.TRUE.equals(role.getIsActive()));
+    }
+
+    public boolean hasAnyRole(String... roleNames) {
+        Objects.requireNonNull(roleNames, "Role names cannot be null");
+        if (roleNames.length == 0) {
+            return false;
+        }
+        return roles.stream()
+                .anyMatch(role -> {
+                    for (String roleName : roleNames) {
+                        if (roleName != null && roleName.equals(role.getRoleName()) && 
+                           Boolean.TRUE.equals(role.getIsActive())) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+    }
+
+    // Address management
+    public Set<UserAddress> getAddresses() {
+        return new HashSet<>(addresses); // Defensive copy
+    }
+
+    public void addAddress(UserAddress address) {
+        Objects.requireNonNull(address, "Address cannot be null");
+        if (addresses.add(address)) {
+            address.setUser(this);
+        }
+    }
+
+    public void removeAddress(UserAddress address) {
+        Objects.requireNonNull(address, "Address cannot be null");
+        if (addresses.remove(address)) {
+            address.setUser(null);
+        }
+    }
+
+    // Order management
+    public Set<Order> getOrders() {
+        return new HashSet<>(orders); // Defensive copy
+    }
+
+    public void addOrder(Order order) {
+        Objects.requireNonNull(order, "Order cannot be null");
+        if (orders.add(order)) {
+            order.setUser(this);
+        }
+    }
+
     // Utility methods
     public String getFullName() {
-        return firstName + " " + lastName;
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+        return (first + " " + last).trim();
     }
-    
-    public boolean hasRole(String roleName) {
-        return roles.stream()
-                .anyMatch(role -> role.getRoleName().equals(roleName) && role.getIsActive());
+
+    public String getDisplayName() {
+        String fullName = getFullName();
+        return fullName.isEmpty() ? (username != null ? username : "Unknown User") : fullName;
     }
-    
+
+    // Lifecycle callbacks for audit
+    @PrePersist
+    protected void onCreate() {
+        if (isActive == null) {
+            isActive = true;
+        }
+    }
+
+    // Override equals and hashCode for proper entity behavior
     @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", isActive=" + isActive +
-                '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && 
+               Objects.equals(username, user.username) && 
+               Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, email);
     }
 }
