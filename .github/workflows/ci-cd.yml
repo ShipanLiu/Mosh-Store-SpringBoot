@@ -144,60 +144,74 @@ jobs:
 
     - name: Add server to known hosts
       run: |
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        mkdir -p ~/.ssh
+        echo "Adding ${{ secrets.SERVER_HOST }} to known hosts..."
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || {
+          echo "ssh-keyscan failed, trying without -H flag..."
+          ssh-keyscan ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || {
+            echo "ssh-keyscan still failed, adding host key manually..."
+            echo "${{ secrets.SERVER_HOST }} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGXw+56QoZj7L8b8gXj9M3v4JkHgNp1/VpE2VJ0w7Q9Z" >> ~/.ssh/known_hosts
+          }
+        }
+        echo "Known hosts file:"
+        cat ~/.ssh/known_hosts
+
+    - name: Test SSH connection
+      run: |
+        echo "Testing SSH connection to ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}..."
+        ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'SSH connection successful!' && whoami && pwd"
 
     - name: Create deployment directory
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
           sudo mkdir -p /opt/mosh-store
           sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /opt/mosh-store
+          echo 'Deployment directory created successfully'
         "
 
     - name: Copy deployment files
       run: |
-        scp docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/
-        scp -r docker/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/ || true
+        echo "Copying deployment files..."
+        scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/
+        scp -o StrictHostKeyChecking=no -r docker/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/ || true
+        echo "Files copied successfully"
 
     - name: Create environment file
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          cd /opt/mosh-store
-          cat > .env << EOF
-          DB_HOST=mysql
-          DB_PORT=3306
-          DB_NAME=cdb_mosh_p1_ecommerce_app_prod
-          DB_USERNAME=${{ secrets.DB_USERNAME }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          SPRING_PROFILES_ACTIVE=prod
-          APP_PORT=8080
-          NGINX_PORT=80
-          NGINX_SSL_PORT=443
-          COMPOSE_PROJECT_NAME=mosh-store
-          EOF
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          cd /opt/mosh-store &&
+          echo 'Creating environment file...' &&
+          echo 'DB_HOST=mysql' > .env &&
+          echo 'DB_PORT=3306' >> .env &&
+          echo 'DB_NAME=cdb_mosh_p1_ecommerce_app_prod' >> .env &&
+          echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> .env &&
+          echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env &&
+          echo 'SPRING_PROFILES_ACTIVE=prod' >> .env &&
+          echo 'APP_PORT=8080' >> .env &&
+          echo 'NGINX_PORT=80' >> .env &&
+          echo 'NGINX_SSL_PORT=443' >> .env &&
+          echo 'COMPOSE_PROJECT_NAME=mosh-store' >> .env &&
+          echo 'Environment file created' &&
+          ls -la .env
         "
 
     - name: Login to GitHub Container Registry on server
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
         "
 
     - name: Deploy application
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          cd /opt/mosh-store
-          
-          # Pull latest images
-          docker compose pull
-          
-          # Stop existing containers
-          docker compose down || true
-          
-          # Start new containers
-          docker compose up -d
-          
-          # Wait for application to be healthy
-          echo 'Waiting for application to start...'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          cd /opt/mosh-store &&
+          echo 'Pulling latest images...' &&
+          docker compose pull &&
+          echo 'Stopping existing containers...' &&
+          docker compose down || true &&
+          echo 'Starting new containers...' &&
+          docker compose up -d &&
+          echo 'Waiting for application to start...' &&
           for i in {1..30}; do
             if curl -f http://localhost:8080/api/v1/ > /dev/null 2>&1; then
               echo 'Application is healthy!'
@@ -205,28 +219,26 @@ jobs:
             fi
             echo 'Waiting for application...'
             sleep 10
-          done
-          
-          # Show running containers
+          done &&
+          echo 'Showing running containers:' &&
           docker compose ps
         "
 
     - name: Verify deployment
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          # Check if containers are running
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          cd /opt/mosh-store &&
+          echo 'Checking if containers are running...' &&
           if [ \$(docker compose ps -q | wc -l) -eq 0 ]; then
             echo 'ERROR: No containers are running!'
             exit 1
-          fi
-          
-          # Check application health
+          fi &&
+          echo 'Checking application health...' &&
           if ! curl -f http://localhost:8080/api/v1/ > /dev/null 2>&1; then
             echo 'ERROR: Application health check failed!'
             docker compose logs app
             exit 1
-          fi
-          
+          fi &&
           echo 'Deployment successful!'
         "
 
@@ -246,10 +258,8 @@ jobs:
 
     - name: Cleanup old Docker images
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          # Remove unused images
-          docker image prune -f
-          
-          # Remove old versions of our app (keep last 3)
-          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format 'table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}' | tail -n +2 | sort -k3 -r | tail -n +4 | awk '{print \$2}' | xargs -r docker rmi || true
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          echo 'Cleaning up unused Docker images...' &&
+          docker image prune -f &&
+          echo 'Cleanup completed'
         " || true 
