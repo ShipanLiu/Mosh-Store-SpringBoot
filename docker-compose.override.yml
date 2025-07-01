@@ -10,10 +10,9 @@ services:
     ports:
       - "3308:3306"  # Different port for local development
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-devpassword}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-19980223}
       MYSQL_DATABASE: ${DB_NAME:-cdb_mosh_p1_ecommerce_app_dev}
-      MYSQL_USER: ${DB_USERNAME:-devuser}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-devpassword}
+      # No MYSQL_USER needed when using root
     volumes:
       - mysql_dev_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
@@ -29,8 +28,8 @@ services:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-cdb_mosh_p1_ecommerce_app_dev}
-      DB_USERNAME: ${DB_USERNAME:-devuser}
-      DB_PASSWORD: ${DB_PASSWORD:-devpassword}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-19980223}
       SWAGGER_ENABLED: true  # Enable Swagger in development
     ports:
       - "8080:8080"

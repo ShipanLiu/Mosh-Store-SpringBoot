@@ -98,8 +98,8 @@ nano .env
 Update these critical values:
 ```env
 # Database
-DB_PASSWORD=your_secure_mysql_password
-DB_USERNAME=moshuser
+DB_PASSWORD=19980223
+DB_USERNAME=root
 
 # Application
 SPRING_PROFILES_ACTIVE=prod
@@ -126,8 +126,8 @@ Add these secrets in your GitHub repository settings (`Settings > Secrets and va
 | `SSH_PRIVATE_KEY` | Your SSH private key | Contents of `~/.ssh/id_ed25519` |
 | `SERVER_HOST` | Server IP or hostname | `100.82.121.103` |
 | `SERVER_USER` | SSH username | `shipan` |
-| `DB_USERNAME` | Database username | `moshuser` |
-| `DB_PASSWORD` | Database password | `secure_password123` |
+| `DB_USERNAME` | Database username | `root` |
+| `DB_PASSWORD` | Database password | `19980223` |
 
 ### Setting Up Secrets
 
@@ -143,8 +143,8 @@ cat ~/.ssh/id_ed25519
 - `SERVER_USER`: `shipan`
 
 3. **Database Credentials:**
-- Generate a secure password for `DB_PASSWORD`
-- Use `moshuser` for `DB_USERNAME`
+- Use `19980223` for `DB_PASSWORD`
+- Use `root` for `DB_USERNAME`
 
 ### GitHub Actions Workflow
 
@@ -219,7 +219,7 @@ docker-compose logs app
 
 3. **Database Connection:**
 ```bash
-docker exec -it mosh-store-mysql mysql -u moshuser -p
+docker exec -it mosh-store-mysql mysql -u root -p
 ```
 
 ### API Testing

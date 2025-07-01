@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+# Add workflow-level permissions
+permissions:
+  contents: read
+  packages: write
+  actions: read
+  checks: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -172,7 +179,7 @@ jobs:
     - name: Login to GitHub Container Registry on server
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          echo '${{ secrets.GITHUB_TOKEN }}' | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
         "
 
     - name: Deploy application
@@ -228,6 +235,8 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
 
     steps:
     - name: Setup SSH

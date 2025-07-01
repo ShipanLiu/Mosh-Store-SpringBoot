@@ -120,8 +120,8 @@ deploy_app() {
 DB_HOST=mysql
 DB_PORT=3306
 DB_NAME=cdb_mosh_p1_ecommerce_app_prod
-DB_USERNAME=moshuser
-DB_PASSWORD=secure_password_change_me
+DB_USERNAME=root
+DB_PASSWORD=19980223
 SPRING_PROFILES_ACTIVE=prod
 APP_PORT=8080
 NGINX_PORT=80

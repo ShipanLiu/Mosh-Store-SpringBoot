@@ -81,8 +81,8 @@ create_test_env() {
 DB_HOST=mysql
 DB_PORT=3306
 DB_NAME=cdb_mosh_p1_ecommerce_app_test
-DB_USERNAME=testuser
-DB_PASSWORD=testpassword123
+DB_USERNAME=root
+DB_PASSWORD=19980223
 SPRING_PROFILES_ACTIVE=docker
 APP_PORT=8080
 COMPOSE_PROJECT_NAME=mosh-store-test
