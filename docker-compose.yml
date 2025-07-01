@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mosh-store-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-19980223}
+      MYSQL_DATABASE: ${DB_NAME:-cdb_mosh_p1_ecommerce_app_prod}
+      MYSQL_USER: ${DB_USERNAME:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-19980223}
+    ports:
+      - "${DB_PORT:-3308}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - mosh-store-network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Spring Boot Application
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: mosh-store-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-cdb_mosh_p1_ecommerce_app_prod}
+      DB_USERNAME: ${DB_USERNAME:-moshuser}
+      DB_PASSWORD: ${DB_PASSWORD:-19980223}
+      SERVER_PORT: 8080
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - mosh-store-network
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: mosh-store-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - mosh-store-network
+    profiles:
+      - production
+
+volumes:
+  mysql_data:
+    driver: local
+  app_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  mosh-store-network:
+    driver: bridge 

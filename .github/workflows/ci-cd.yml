@@ -1,0 +1,246 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Test Job
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: cdb_mosh_p1_ecommerce_app_tu
+        ports:
+          - 3308:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Wait for MySQL
+      run: |
+        for i in {1..30}; do
+          if mysqladmin ping -h 127.0.0.1 -P 3308 -u root -ptestpassword --silent; then
+            echo "MySQL is ready"
+            break
+          fi
+          echo "Waiting for MySQL..."
+          sleep 2
+        done
+
+    - name: Run tests
+      run: |
+        chmod +x ./mvnw
+        ./mvnw clean test -Dspring.profiles.active=tu
+      env:
+        DB_USERNAME: root
+        DB_PASSWORD: testpassword
+        DB_HOST: localhost
+        DB_PORT: 3308
+
+    - name: Generate test report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Maven Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+
+  # Build and Push Docker Image
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix=sha-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Deploy to Production Server
+  deploy:
+    needs: [test, build-and-push]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Create deployment directory
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          sudo mkdir -p /opt/mosh-store
+          sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /opt/mosh-store
+        "
+
+    - name: Copy deployment files
+      run: |
+        scp docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/
+        scp -r docker/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/opt/mosh-store/ || true
+
+    - name: Create environment file
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          cd /opt/mosh-store
+          cat > .env << EOF
+          DB_HOST=mysql
+          DB_PORT=3306
+          DB_NAME=cdb_mosh_p1_ecommerce_app_prod
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SPRING_PROFILES_ACTIVE=prod
+          APP_PORT=8080
+          NGINX_PORT=80
+          NGINX_SSL_PORT=443
+          COMPOSE_PROJECT_NAME=mosh-store
+          EOF
+        "
+
+    - name: Login to GitHub Container Registry on server
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        "
+
+    - name: Deploy application
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          cd /opt/mosh-store
+          
+          # Pull latest images
+          docker compose pull
+          
+          # Stop existing containers
+          docker compose down || true
+          
+          # Start new containers
+          docker compose up -d
+          
+          # Wait for application to be healthy
+          echo 'Waiting for application to start...'
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/api/v1/ > /dev/null 2>&1; then
+              echo 'Application is healthy!'
+              break
+            fi
+            echo 'Waiting for application...'
+            sleep 10
+          done
+          
+          # Show running containers
+          docker compose ps
+        "
+
+    - name: Verify deployment
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          # Check if containers are running
+          if [ \$(docker compose ps -q | wc -l) -eq 0 ]; then
+            echo 'ERROR: No containers are running!'
+            exit 1
+          fi
+          
+          # Check application health
+          if ! curl -f http://localhost:8080/api/v1/ > /dev/null 2>&1; then
+            echo 'ERROR: Application health check failed!'
+            docker compose logs app
+            exit 1
+          fi
+          
+          echo 'Deployment successful!'
+        "
+
+  # Cleanup old images (optional)
+  cleanup:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Cleanup old Docker images
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          # Remove unused images
+          docker image prune -f
+          
+          # Remove old versions of our app (keep last 3)
+          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format 'table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}' | tail -n +2 | sort -k3 -r | tail -n +4 | awk '{print \$2}' | xargs -r docker rmi || true
+        " || true 
